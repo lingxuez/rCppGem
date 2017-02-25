@@ -126,3 +126,22 @@ void draw_kappa_tau(const arma::mat & A, const arma::Col<int> & G, const arma::m
         tau(l) = mP(1);
     }
 }
+
+
+double update_SuffStat_SC(const arma::Mat<int> & S, const arma::vec & kappa, const arma::vec & tau, const arma::mat & omega, 
+                   int n_samples, arma::mat & exp_S, arma::vec & exp_kappa, arma::vec & exp_tau,
+                   arma::vec & exp_kappa_sq, arma::vec & exp_tau_sq, arma::mat & coeff_A, arma::mat & coeff_A_sq)
+{
+    exp_S += S / (double) n_samples;
+    exp_kappa += kappa / (double) n_samples;
+    exp_tau += tau / (double) n_samples;
+    exp_kappa_sq += arma::square(kappa) / (double) n_samples;
+    exp_tau_sq += arma::square(tau) / (double) n_samples;
+
+    int N = coeff_A.n_rows;
+    for (int i = 0; i < N; i++) {
+        coeff_A.row(i) = (S.row(i) - 0.5) 
+    }
+    coeff_A = (S - 0.5) % 
+
+}
