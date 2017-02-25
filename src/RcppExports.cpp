@@ -6,16 +6,31 @@
 
 using namespace Rcpp;
 
-// test_wrapper
-List test_wrapper(arma::mat bulkExpr, arma::mat A, arma::mat W);
-RcppExport SEXP rCppGem_test_wrapper(SEXP bulkExprSEXP, SEXP ASEXP, SEXP WSEXP) {
+// test_draw_Z
+arma::Mat<int> test_draw_Z(const arma::mat& bulkExpr, const arma::mat& A, const arma::mat& W, arma::Mat<int>& Zik, arma::Mat<int>& Zjk);
+RcppExport SEXP rCppGem_test_draw_Z(SEXP bulkExprSEXP, SEXP ASEXP, SEXP WSEXP, SEXP ZikSEXP, SEXP ZjkSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type bulkExpr(bulkExprSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type W(WSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_wrapper(bulkExpr, A, W));
+    Rcpp::traits::input_parameter< const arma::mat& >::type bulkExpr(bulkExprSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<int>& >::type Zik(ZikSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<int>& >::type Zjk(ZjkSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_draw_Z(bulkExpr, A, W, Zik, Zjk));
+    return rcpp_result_gen;
+END_RCPP
+}
+// draw_W
+arma::mat draw_W(const arma::vec& alpha, const arma::Mat<int>& Zjk, arma::mat& W);
+RcppExport SEXP rCppGem_draw_W(SEXP alphaSEXP, SEXP ZjkSEXP, SEXP WSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type Zjk(ZjkSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(draw_W(alpha, Zjk, W));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -32,6 +47,42 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< const arma::Col<int> >::type G(GSEXP);
     rcpp_result_gen = Rcpp::wrap(test_draw_omega(omega, psi, A, kappa, tau, G));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_draw_S
+arma::Mat<int> test_draw_S(const arma::Mat<int>& i_zeros, const arma::mat& A, const arma::Col<int>& G, arma::Mat<int>& S, const arma::mat& psi, arma::vec& sumAS, const arma::vec& SCrd);
+RcppExport SEXP rCppGem_test_draw_S(SEXP i_zerosSEXP, SEXP ASEXP, SEXP GSEXP, SEXP SSEXP, SEXP psiSEXP, SEXP sumASSEXP, SEXP SCrdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type i_zeros(i_zerosSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const arma::Col<int>& >::type G(GSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<int>& >::type S(SSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type psi(psiSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type sumAS(sumASSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type SCrd(SCrdSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_draw_S(i_zeros, A, G, S, psi, sumAS, SCrd));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_draw_kappa_tau
+arma::vec test_draw_kappa_tau(const arma::mat& A, const arma::Col<int>& G, const arma::mat& omega, const arma::vec& p_kappa, const arma::vec& p_tau, const arma::vec& sumAS, arma::vec& kappa, arma::vec& tau, const arma::Mat<int>& S);
+RcppExport SEXP rCppGem_test_draw_kappa_tau(SEXP ASEXP, SEXP GSEXP, SEXP omegaSEXP, SEXP p_kappaSEXP, SEXP p_tauSEXP, SEXP sumASSEXP, SEXP kappaSEXP, SEXP tauSEXP, SEXP SSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const arma::Col<int>& >::type G(GSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type p_kappa(p_kappaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type p_tau(p_tauSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type sumAS(sumASSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type kappa(kappaSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type S(SSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_draw_kappa_tau(A, G, omega, p_kappa, p_tau, sumAS, kappa, tau, S));
     return rcpp_result_gen;
 END_RCPP
 }
