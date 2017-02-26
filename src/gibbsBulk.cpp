@@ -1,13 +1,14 @@
 #include "RCppArmadillo.h"
 
+// #ifndef GIBBS_BULK_H
+// #define GIBBS_BULK_H
+#include "gibbsBulk.h"
+// #endif
+
 
 using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
-
-void draw_Z(const arma::mat & bulkExpr, const arma::mat & A, const arma::mat & W,
-            arma::Mat<int> & Zik, arma::Mat<int> & Zjk);
-
 
 /*
 // [[Rcpp::export]]
@@ -44,14 +45,14 @@ arma::Cube<unsigned int> draw_Z(arma::mat bulkExpr, arma::mat A, arma::mat W) {
 
 
 // [[Rcpp::export]]
-arma::Mat<int> test_draw_Z(const arma::mat & bulkExpr, const arma::mat & A, const arma::mat & W,
+arma::Mat<int> test_draw_Z(const arma::Mat<int> & bulkExpr, const arma::mat & A, const arma::mat & W,
             arma::Mat<int> & Zik, arma::Mat<int> & Zjk)
 {
     draw_Z(bulkExpr, A, W, Zik, Zjk);
     return Zjk;
 }
 
-void draw_Z(const arma::mat & bulkExpr, const arma::mat & A, const arma::mat & W,
+void draw_Z(const arma::Mat<int> & bulkExpr, const arma::mat & A, const arma::mat & W,
             arma::Mat<int> & Zik, arma::Mat<int> & Zjk)
 {
     int N = A.n_rows;
@@ -137,3 +138,56 @@ void draw_W(const arma::vec & alpha, const arma::Mat<int> & Zjk, arma::mat & W) 
 //     gsl_rng_free (r);
 //     return 0;
 // }
+
+
+void update_SuffStat_BK(const arma::Mat<int> & Zik, const arma::Mat<int> & Zjk, const arma::mat & W,
+                        arma::mat & exp_Zik, arma::mat & exp_Zjk, arma::mat & exp_W, arma::mat & exp_logW, int n_samples)
+{
+    exp_Zik += arma::conv_to<arma::mat>::from(Zik) / n_samples;
+    exp_Zjk += arma::conv_to<arma::mat>::from(Zjk) / n_samples;
+    exp_W += W / n_samples;
+    exp_logW += arma::log(W) / n_samples;
+}
+
+
+
+
+void gibbs_BK(int K, int M, int N, const arma::Mat<int> & i_markers,
+              const arma::Mat<int> & bulkExpr, const arma::vec & alpha,
+              const arma::mat & A, arma::mat & exp_Zik, arma::mat & exp_Zjk,
+              arma::mat & exp_W, arma::mat & exp_logW,
+              int burn_in, int n_samples, int thin)
+{
+    int i, k;
+    arma::mat W = arma::mat(K, M);
+    arma::Mat<int> Zik = arma::Mat<int>(N, K);
+    arma::Mat<int> Zjk = arma::Mat<int>(M, K, arma::fill::zeros);
+
+
+    // Initialize Zjk according to Marker Genes
+
+    for (int i_row = 0; i_row < i_markers.n_rows; i_row++) {
+        i = i_markers(i_row, 0);
+        k = i_markers(i_row, 1);
+        for (int j = 0; j < M; j++) {
+            Zjk(j, k) = bulkExpr(j, i);
+        }
+    }
+
+    
+
+    // Gibbs Sampling: Burn In
+    for (int i_iter = 0; i_iter < burn_in; i_iter++) {
+        draw_W(alpha, Zjk, W);
+        draw_Z(bulkExpr, A, W, Zik, Zjk);
+    }
+
+    // Gibbs Sampling
+    for (int i_iter = 0; i_iter < n_samples * thin; i_iter++) {
+        draw_W(alpha, Zjk, W);
+        draw_Z(bulkExpr, A, W, Zik, Zjk);
+        if (i_iter % thin == 0) {
+            update_SuffStat_BK(Zik, Zjk, W, exp_Zik, exp_Zjk, exp_W, exp_logW, n_samples);
+        }
+    }
+}

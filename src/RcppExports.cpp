@@ -6,31 +6,49 @@
 
 using namespace Rcpp;
 
+// gem
+void gem(double EM_CONV, double MLE_CONV, int EM_MAX_ITER, int MLE_MAX_ITER, const arma::Mat<int>& bulkExpr, const arma::Mat<int>& scExpr, const arma::Col<int>& G, int K, const arma::Mat<int>& i_markers, arma::vec& alpha, arma::vec& p_kappa, arma::vec& p_tau, const arma::Mat<int>& i_zeros, const arma::vec& SCrd, bool has_BK, bool has_SC, int M, int L, int N, int burn_in, int n_samples, int thin);
+RcppExport SEXP rCppGem_gem(SEXP EM_CONVSEXP, SEXP MLE_CONVSEXP, SEXP EM_MAX_ITERSEXP, SEXP MLE_MAX_ITERSEXP, SEXP bulkExprSEXP, SEXP scExprSEXP, SEXP GSEXP, SEXP KSEXP, SEXP i_markersSEXP, SEXP alphaSEXP, SEXP p_kappaSEXP, SEXP p_tauSEXP, SEXP i_zerosSEXP, SEXP SCrdSEXP, SEXP has_BKSEXP, SEXP has_SCSEXP, SEXP MSEXP, SEXP LSEXP, SEXP NSEXP, SEXP burn_inSEXP, SEXP n_samplesSEXP, SEXP thinSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type EM_CONV(EM_CONVSEXP);
+    Rcpp::traits::input_parameter< double >::type MLE_CONV(MLE_CONVSEXP);
+    Rcpp::traits::input_parameter< int >::type EM_MAX_ITER(EM_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< int >::type MLE_MAX_ITER(MLE_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type bulkExpr(bulkExprSEXP);
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type scExpr(scExprSEXP);
+    Rcpp::traits::input_parameter< const arma::Col<int>& >::type G(GSEXP);
+    Rcpp::traits::input_parameter< int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type i_markers(i_markersSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type p_kappa(p_kappaSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type p_tau(p_tauSEXP);
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type i_zeros(i_zerosSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type SCrd(SCrdSEXP);
+    Rcpp::traits::input_parameter< bool >::type has_BK(has_BKSEXP);
+    Rcpp::traits::input_parameter< bool >::type has_SC(has_SCSEXP);
+    Rcpp::traits::input_parameter< int >::type M(MSEXP);
+    Rcpp::traits::input_parameter< int >::type L(LSEXP);
+    Rcpp::traits::input_parameter< int >::type N(NSEXP);
+    Rcpp::traits::input_parameter< int >::type burn_in(burn_inSEXP);
+    Rcpp::traits::input_parameter< int >::type n_samples(n_samplesSEXP);
+    Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
+    gem(EM_CONV, MLE_CONV, EM_MAX_ITER, MLE_MAX_ITER, bulkExpr, scExpr, G, K, i_markers, alpha, p_kappa, p_tau, i_zeros, SCrd, has_BK, has_SC, M, L, N, burn_in, n_samples, thin);
+    return R_NilValue;
+END_RCPP
+}
 // test_draw_Z
-arma::Mat<int> test_draw_Z(const arma::mat& bulkExpr, const arma::mat& A, const arma::mat& W, arma::Mat<int>& Zik, arma::Mat<int>& Zjk);
+arma::Mat<int> test_draw_Z(const arma::Mat<int>& bulkExpr, const arma::mat& A, const arma::mat& W, arma::Mat<int>& Zik, arma::Mat<int>& Zjk);
 RcppExport SEXP rCppGem_test_draw_Z(SEXP bulkExprSEXP, SEXP ASEXP, SEXP WSEXP, SEXP ZikSEXP, SEXP ZjkSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type bulkExpr(bulkExprSEXP);
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type bulkExpr(bulkExprSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type W(WSEXP);
     Rcpp::traits::input_parameter< arma::Mat<int>& >::type Zik(ZikSEXP);
     Rcpp::traits::input_parameter< arma::Mat<int>& >::type Zjk(ZjkSEXP);
     rcpp_result_gen = Rcpp::wrap(test_draw_Z(bulkExpr, A, W, Zik, Zjk));
-    return rcpp_result_gen;
-END_RCPP
-}
-// draw_W
-arma::mat draw_W(const arma::vec& alpha, const arma::Mat<int>& Zjk, arma::mat& W);
-RcppExport SEXP rCppGem_draw_W(SEXP alphaSEXP, SEXP ZjkSEXP, SEXP WSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type Zjk(ZjkSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type W(WSEXP);
-    rcpp_result_gen = Rcpp::wrap(draw_W(alpha, Zjk, W));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -84,5 +102,55 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::Mat<int>& >::type S(SSEXP);
     rcpp_result_gen = Rcpp::wrap(test_draw_kappa_tau(A, G, omega, p_kappa, p_tau, sumAS, kappa, tau, S));
     return rcpp_result_gen;
+END_RCPP
+}
+// opt_MLE
+void opt_MLE(std::vector<int> counts, arma::mat& A, const arma::mat& exp_Zik, double min_A, double MLE_CONV, int MLE_MAX_ITER, double init_stepsize, const arma::Col<int>& G, const arma::vec& SCrd, const arma::mat& exp_Zjk, const arma::mat& exp_logW, const arma::mat& coeff_A, const arma::mat& coeff_A_sq, double exp_elbo_const, const arma::Mat<int>& scExpr, const arma::mat& exp_S, bool has_BK, bool has_SC);
+RcppExport SEXP rCppGem_opt_MLE(SEXP countsSEXP, SEXP ASEXP, SEXP exp_ZikSEXP, SEXP min_ASEXP, SEXP MLE_CONVSEXP, SEXP MLE_MAX_ITERSEXP, SEXP init_stepsizeSEXP, SEXP GSEXP, SEXP SCrdSEXP, SEXP exp_ZjkSEXP, SEXP exp_logWSEXP, SEXP coeff_ASEXP, SEXP coeff_A_sqSEXP, SEXP exp_elbo_constSEXP, SEXP scExprSEXP, SEXP exp_SSEXP, SEXP has_BKSEXP, SEXP has_SCSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<int> >::type counts(countsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type exp_Zik(exp_ZikSEXP);
+    Rcpp::traits::input_parameter< double >::type min_A(min_ASEXP);
+    Rcpp::traits::input_parameter< double >::type MLE_CONV(MLE_CONVSEXP);
+    Rcpp::traits::input_parameter< int >::type MLE_MAX_ITER(MLE_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< double >::type init_stepsize(init_stepsizeSEXP);
+    Rcpp::traits::input_parameter< const arma::Col<int>& >::type G(GSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type SCrd(SCrdSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type exp_Zjk(exp_ZjkSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type exp_logW(exp_logWSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type coeff_A(coeff_ASEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type coeff_A_sq(coeff_A_sqSEXP);
+    Rcpp::traits::input_parameter< double >::type exp_elbo_const(exp_elbo_constSEXP);
+    Rcpp::traits::input_parameter< const arma::Mat<int>& >::type scExpr(scExprSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type exp_S(exp_SSEXP);
+    Rcpp::traits::input_parameter< bool >::type has_BK(has_BKSEXP);
+    Rcpp::traits::input_parameter< bool >::type has_SC(has_SCSEXP);
+    opt_MLE(counts, A, exp_Zik, min_A, MLE_CONV, MLE_MAX_ITER, init_stepsize, G, SCrd, exp_Zjk, exp_logW, coeff_A, coeff_A_sq, exp_elbo_const, scExpr, exp_S, has_BK, has_SC);
+    return R_NilValue;
+END_RCPP
+}
+// opt_Ak_full
+void opt_Ak_full(arma::mat& A, int k, double MLE_CONV, int MLE_MAX_ITER, double init_stepsize, double min_A, const arma::mat& gd_coeffA, const arma::mat& gd_coeffAinv, const arma::Col<int>& G, const arma::mat& coeffA, const arma::mat& exp_S, const arma::vec& SCrd, arma::mat& gd_coeffConst, arma::vec& u);
+RcppExport SEXP rCppGem_opt_Ak_full(SEXP ASEXP, SEXP kSEXP, SEXP MLE_CONVSEXP, SEXP MLE_MAX_ITERSEXP, SEXP init_stepsizeSEXP, SEXP min_ASEXP, SEXP gd_coeffASEXP, SEXP gd_coeffAinvSEXP, SEXP GSEXP, SEXP coeffASEXP, SEXP exp_SSEXP, SEXP SCrdSEXP, SEXP gd_coeffConstSEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< double >::type MLE_CONV(MLE_CONVSEXP);
+    Rcpp::traits::input_parameter< int >::type MLE_MAX_ITER(MLE_MAX_ITERSEXP);
+    Rcpp::traits::input_parameter< double >::type init_stepsize(init_stepsizeSEXP);
+    Rcpp::traits::input_parameter< double >::type min_A(min_ASEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type gd_coeffA(gd_coeffASEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type gd_coeffAinv(gd_coeffAinvSEXP);
+    Rcpp::traits::input_parameter< const arma::Col<int>& >::type G(GSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type coeffA(coeffASEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type exp_S(exp_SSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type SCrd(SCrdSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type gd_coeffConst(gd_coeffConstSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type u(uSEXP);
+    opt_Ak_full(A, k, MLE_CONV, MLE_MAX_ITER, init_stepsize, min_A, gd_coeffA, gd_coeffAinv, G, coeffA, exp_S, SCrd, gd_coeffConst, u);
+    return R_NilValue;
 END_RCPP
 }

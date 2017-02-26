@@ -1,18 +1,13 @@
 #include "RcppArmadillo.h"
 #include "RNG.h"
 #include "PolyaGamma.h"
+#include "gibbsSC.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
 using namespace Rcpp;
 
-void draw_S(const arma::Mat<int> & i_zeros, const arma::mat & A, const arma::Col<int> & G, 
-            arma::Mat<int> & S, const arma::mat & psi, arma::vec & sumAS, const arma::vec & SCrd);
-void draw_omega(arma::mat & omega, arma::mat & psi,
-                const arma::mat & A, const arma::vec & kappa, const arma::vec & tau,
-                const arma::Col<int> & G);
-void draw_kappa_tau(const arma::mat & A, const arma::Col<int> & G, const arma::mat & omega, const arma::vec & p_kappa,
-                    const arma::vec & p_tau, const arma::vec & sumAS, arma::vec & kappa, arma::vec & tau, const arma::Mat<int> & S);
+
 
 
 void draw_omega(arma::mat & omega, arma::mat & psi,
@@ -47,7 +42,7 @@ arma::mat test_draw_omega(arma::mat omega, arma::mat psi,
                 const arma::Col<int> G)
 {
     draw_omega(omega, psi, A, kappa, tau, G);
-    return psi;
+    return omega;
 }
 
 // [[Rcpp::export]]
@@ -64,7 +59,7 @@ void draw_S(const arma::Mat<int> & i_zeros, const arma::mat & A, const arma::Col
 {
     int l, i;
     double A_cur, other, b;
-    for (int i_row = 0; i_row < i_zeros.n_rows; i_row ++) {
+    for (int i_row = 0; i_row < i_zeros.n_rows; i_row++) {
         l = i_zeros(i_row, 0);
         i = i_zeros(i_row, 1);
         A_cur = A(i, G(l));
@@ -127,21 +122,100 @@ void draw_kappa_tau(const arma::mat & A, const arma::Col<int> & G, const arma::m
     }
 }
 
-
 double update_SuffStat_SC(const arma::Mat<int> & S, const arma::vec & kappa, const arma::vec & tau, const arma::mat & omega, 
                    int n_samples, arma::mat & exp_S, arma::vec & exp_kappa, arma::vec & exp_tau,
-                   arma::vec & exp_kappa_sq, arma::vec & exp_tau_sq, arma::mat & coeff_A, arma::mat & coeff_A_sq)
+                   arma::vec & exp_kappa_sq, arma::vec & exp_tau_sq, arma::mat & coeff_A, arma::mat & coeff_A_sq,
+                   const arma::Col<int> & G)
 {
-    exp_S += S / (double) n_samples;
-    exp_kappa += kappa / (double) n_samples;
-    exp_tau += tau / (double) n_samples;
-    exp_kappa_sq += arma::square(kappa) / (double) n_samples;
-    exp_tau_sq += arma::square(tau) / (double) n_samples;
 
-    int N = coeff_A.n_rows;
-    for (int i = 0; i < N; i++) {
-        coeff_A.row(i) = (S.row(i) - 0.5) 
+    // std::cout << "n samples: \n" << n_samples << "\n";
+
+    exp_S += arma::conv_to<arma::mat>::from(S) / n_samples;
+    exp_kappa += kappa / n_samples;
+    exp_tau += tau / n_samples;
+    exp_kappa_sq += arma::square(kappa) / n_samples;
+    exp_tau_sq += arma::square(tau) / n_samples;
+
+    // std::cout << "exp_S: \n" << exp_S << "\n";
+    // std::cout << "exp_kappa: \n" << exp_kappa << "\n";
+    // std::cout << "exp_tau: \n" << exp_tau << "\n";
+    // std::cout << "exp_kappa_sq: \n" << exp_kappa_sq << "\n";
+    // std::cout << "exp_tau_sq: \n" << exp_tau_sq << "\n";
+
+    // coeff_A.zeros();
+    // coeff_A_sq.zeros();
+
+    double exp_elbo_const = 0;
+
+    for (int i = 0; i < coeff_A.n_rows; i++) {
+        for (int l = 0; l < S.n_rows; l++) {
+            coeff_A(i, G(l)) += ((S(l, i) - 0.5) * tau(l) - omega(l, i) * tau(l) * kappa(l)) / n_samples;
+            coeff_A_sq(i, G(l)) -= (omega(l, i) * tau(l) * tau(l) / 2) / n_samples;
+            exp_elbo_const += (S(l, i) - 0.5) * kappa(l) - omega(l, i) * kappa(l) * kappa(l) / 2;
+        }
     }
-    coeff_A = (S - 0.5) % 
 
+    exp_elbo_const /= n_samples;
+
+    // std::cout << "coeff_A: \n" << coeff_A << "\n";
+    // std::cout << "coeff_A_sq: \n" << coeff_A_sq << "\n";
+
+    return exp_elbo_const;
+}
+
+
+
+
+
+double gibbs_SC(int L, int N, int K, const arma::mat & A, const arma::Col<int> & G, 
+              const arma::vec & p_kappa, const arma::vec & p_tau, 
+              const arma::Mat<int> & i_zeros,
+              arma::mat & exp_S, arma::vec & exp_kappa, arma::vec & exp_tau,
+              arma::vec & exp_kappa_sq, arma::vec & exp_tau_sq,
+              arma::mat & coeff_A, arma::mat & coeff_A_sq,
+              const arma::vec & SCrd,
+              int burn_in, int n_samples, int thin)
+{
+    //Initialize
+    arma::vec kappa = arma::vec(L, arma::fill::ones);
+    arma::vec tau = arma::vec(L, arma::fill::ones);
+    kappa *= p_kappa(0);
+    tau *= p_tau(0);
+    arma::Mat<int> S = arma::Mat<int>(L, N, arma::fill::ones);
+    arma::mat psi = arma::mat(L, N);
+    arma::mat omega = arma::mat(L, N);
+    arma::vec sumAS = arma::vec(L);
+
+    double exp_elbo_const = 0;
+
+    for (int l, i, i_row = 0; i_row < i_zeros.n_rows; i_row++) {
+        l = i_zeros(i_row, 0);
+        i = i_zeros(i_row, 1);
+        S(l, i) = rbinom(1, 1, 0.5)(0);
+    }
+
+    for (int l = 0; l < L; l++) {
+        sumAS(l) = arma::sum(A.col(G(l)) % S.row(l).t());
+    }
+
+    //Gibbs Sampling: Burn In
+    for (int i_iter = 0; i_iter < burn_in; i_iter++) {
+        draw_omega(omega, psi, A, kappa, tau, G);
+        draw_S(i_zeros, A, G, S, psi, sumAS, SCrd);
+        draw_kappa_tau(A, G, omega, p_kappa, p_tau, sumAS, kappa, tau, S);
+    }
+
+    //Gibbs Sampling
+    for (int i_iter = 0; i_iter < n_samples * thin; i_iter++) {
+        draw_omega(omega, psi, A, kappa, tau, G);
+        draw_S(i_zeros, A, G, S, psi, sumAS, SCrd);
+        draw_kappa_tau(A, G, omega, p_kappa, p_tau, sumAS, kappa, tau, S);
+        if (i_iter % thin == 0)
+        {
+            exp_elbo_const += update_SuffStat_SC(S, kappa, tau, omega, n_samples, exp_S, exp_kappa, exp_tau,
+                               exp_kappa_sq, exp_tau_sq, coeff_A, coeff_A_sq, G);
+        }
+    }
+    
+    return exp_elbo_const;
 }
